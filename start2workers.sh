@@ -1,0 +1,1 @@
+WEB_CONCURRENCY=2 pm2 start ecosystem.config.js

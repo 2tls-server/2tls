@@ -1,0 +1,12 @@
+pydantic
+fastapi
+sqlmodel
+redis
+fakeredis
+quickjs
+Unidecode
+pykakasi
+aiobotocore
+Pillow
+pydub
+uvicorn

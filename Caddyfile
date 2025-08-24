@@ -1,0 +1,13 @@
+2tls.fun {
+    # root * /var/www/2tls.fun
+
+    reverse_proxy localhost:8000 # will be changed soon
+
+    handle /api/* /sonolus/* {
+        reverse_proxy localhost:8000
+    }
+    
+    # handle {
+    # file_server
+    # }
+}
