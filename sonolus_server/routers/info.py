@@ -15,9 +15,10 @@ async def main(localization: localization='en'):
 
     return ServerInfo(
         title='2tls',
-        description='New server, old assets (from Chart Cyanvas)',
+        description=language['description'],
         buttons=[
             ServerInfoButton(type='authentication'),
+            ServerInfoButton(type='post'),
             ServerInfoButton(type='level'),
             ServerInfoButton(type='skin'),
             ServerInfoButton(type='background'),
@@ -52,6 +53,38 @@ async def main(localization: localization='en'):
 @router.get('/levels/info', response_model=ServerItemInfo)
 async def levels(always_set_alias: str | None = None, always_hide_id: Literal['0', '1'] = '0', localization: localization='en', user: User = Depends(GetUser())):
     language = get_language(localization)
+
+    sections=[ServerItemSection(
+        title='#NEWEST',
+        icon='arrowDown',
+        itemType='level',
+        items=await database.level_cache.get_page(page_size=5) 
+    )]
+
+    if user:
+        sections.insert(0, ServerItemSection(
+            title=language['my_levels'],
+            icon='post',
+            itemType='level',
+            items=[
+                LevelItem(
+                    name=f'{env.PROJECT_NAME}-my-levels',
+                    rating=0,
+                    title=language['my_levels'],
+                    artists='',
+                    author='',
+                    tags=[],
+                    engine=static.engine,
+                    useSkin=UseItem(useDefault=True),
+                    useBackground=UseItem(useDefault=True),
+                    useEffect=UseItem(useDefault=True),
+                    useParticle=UseItem(useDefault=True),
+                    cover=Srl(url=''),
+                    bgm=Srl(url=''),
+                    data=Srl(url='')
+                )
+            ]
+        ))
 
     return ServerItemInfo(
         creates=[
@@ -232,12 +265,7 @@ async def levels(always_set_alias: str | None = None, always_hide_id: Literal['0
                 ]
             )
         ],
-        sections=[ServerItemSection(
-            title='#NEWEST',
-            icon='arrowDown',
-            itemType='level',
-            items=await database.level_cache.get_page(page_size=5)
-        )]
+        sections=sections
     )
 
 @router.get('/skins/info', response_model=ServerItemInfo)

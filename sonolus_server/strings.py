@@ -3,6 +3,8 @@ from env import env
 from typing import TypedDict
 
 class Language(TypedDict):
+    description: str
+
     always_hide_id_name: str
     always_hide_id_description: str
     always_set_alias_name: str
@@ -29,8 +31,14 @@ class Language(TypedDict):
     search_by_user_handle: str
     sort_by_most_liked: str
 
+    guidelines_title: str
+    guidelines: str
+
+    my_levels: str
+
 strings = { # I aint gon lie, chatgpt fixed my text. At least it's readable now
     'en': {
+        'description': 'Assets are from Chart Cyanvas server\nPlease check the posts for guidelines and more info',
         'always_hide_id_name': 'Always Hide My ID',
         'always_hide_id_description': \
 f"""NOTE: This setting does not affect actions on the website.
@@ -77,9 +85,13 @@ You can change this and the "Alias" option here for only this level, or enable i
         'visibility_public': 'Public',
         'visibility_unlisted': 'Unlisted',
         'search_by_user_handle': 'User ID',
-        'sort_by_most_liked': 'Most liked'
+        'sort_by_most_liked': 'Most liked',
+        'guidelines_title': 'Guidelines',
+        'guidelines': 'There are no exact guidelines for now, but there will be soon. As for now, you can publish pretty much everything and I can decide if it gets deleted (and maybe you getting banned if you\'ve done something REAL bad. For example: NSFW)',
+        'my_levels': 'My levels'
     },
     'ru': {
+        'description': 'Ассеты взяты с сервера Chart Cyanvas\nПожалуйста, загляните в посты для правил и дополнительной информации',
         'always_hide_id_name': 'Всегда скрывать ID',
         'always_hide_id_description': \
 f"""ПРИМЕЧАНИЕ: эта настройка не влияет на действия, совершённые на сайте.
@@ -126,7 +138,10 @@ f"""Заменит твой Sonolus ID на {env.PROJECT_NAME} ID. Отобра�
         'visibility_public': 'Общий доступ',
         'visibility_unlisted': 'Доступ по ссылке',
         'sort_by_most_liked': 'Самые залайканные',
-        'search_by_user_handle': 'По ID пользователя'
+        'search_by_user_handle': 'По ID пользователя',
+        'guidelines_title': 'Правила',
+        'guidelines': 'Сейчас нет конкретных правил, однако скоро появятся. Сейчас вы можете загружать почти все что угодно, а я буду решать, удалять ли (и может даже банить создателя если тот сделал что-то реально ужасное. Например NSFW)',
+        'my_levels': 'Мои уровни'
     }
 }
 

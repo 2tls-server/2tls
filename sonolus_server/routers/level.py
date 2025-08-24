@@ -9,6 +9,8 @@ from sqlmodel import select, col, func
 from ..dependencies import GetUser
 from urllib.parse import parse_qs
 from aiobotocore.session import get_session
+from .. import static
+from ..strings import get_language
 
 router = APIRouter()
 
@@ -172,4 +174,41 @@ async def level(level_id: str, user: User | None=Depends(GetUser()), localizatio
         hasCommunity=False,
         leaderboards=[], # also TODO but I wanna figure out how to move leaderboard to another place maybe? So caching?
         sections=[]
+    )
+
+@router.get(f'/levels/{env.PROJECT_NAME}-my-levels', response_model=ServerItemDetails[LevelItem])
+async def my_levels(user: User=Depends(GetUser(raise_exc=True)), localization: localization='en'):
+    language = get_language(localization)
+
+    async with database.get_session() as session:
+        items = map(database.level_cache.level_to_level_item, (await session.execute(select(Level).where(Level.user_id == user.id))).scalars().all())
+
+    return ServerItemDetails(
+        item=LevelItem(
+            name=f'{env.PROJECT_NAME}-my-levels',
+            rating=0,
+            title=language['my_levels'],
+            artists='',
+            author='',
+            tags=[],
+            engine=static.engine,
+            useSkin=UseItem(useDefault=True),
+            useBackground=UseItem(useDefault=True),
+            useEffect=UseItem(useDefault=True),
+            useParticle=UseItem(useDefault=True),
+            cover=Srl(url=''),
+            bgm=Srl(url=''),
+            data=Srl(url='')
+        ),
+        actions=[],
+        hasCommunity=False,
+        leaderboards=[],
+        sections=[
+            ServerItemSection(
+                title=language['my_levels'],
+                icon='post',
+                itemType='level',
+                items=items
+            )
+        ]
     )
