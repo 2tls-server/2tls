@@ -56,4 +56,4 @@ app.include_router(website_api.router)
 
 @app.get("/")
 async def root():
-    return {"message": "Обед"}
+    return 'The website is WIP. Come back later. You can join the discord server tho!! https://discord.gg/fa5nJEsXH7'
