@@ -11,3 +11,4 @@ Pillow
 pydub
 uvicorn
 cryptography
+python-multipart

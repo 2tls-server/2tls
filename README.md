@@ -35,7 +35,7 @@ Create env (`env = BaseEnv(...)`).
 If you plan on hosting 2tls on your local machine, you might not use reverse proxy at all or use ngrok. 
 If you want to deploy 2tls to prod, you should **absolutely** use reverse proxy: it will provide HTTPS support and also it's just not recommended to use anything without a reverse proxy.
 If you use Caddy: edit `/etc/caddy/Caddyfile`, add contents from local caddy file (make sure to change the domain name).
-If you use PM2: you can launch 2tls using `start.sh` (2 * cpu-cores + 1 workers), `start1worker.sh` and `start2workers.sh`.
+If you use PM2: copy the code from `ecosystem.config.js.example` to `ecosystem.config.js`. You might want to change something there. You can launch 2tls using `start.sh` (2 * cpu-cores + 1 workers), `start1worker.sh` and `start2workers.sh`.
  - **Done. You're awesome**
 ## Some notes
 - This is my first open-source project and almost my first project in prod.
