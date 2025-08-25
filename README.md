@@ -31,9 +31,6 @@ There are many S3 providers out there and you can get an "external" S3 bucket to
 Create a file in project root directory called `env.py`;
 Import envhelper in there (`from envhelper import BaseEnv`);
 Create env (`env = BaseEnv(...)`).
-- **Add engine to your S3**
-Use [Nanashi](github.com/sevenc-nanashi)'s [pjsekai-engine-extended](https://github.com/sevenc-nanashi/sonolus-pjsekai-engine-extended). You need to compile it and locate files in `S3/engine` folder. Check `sonolus_server/static.py:85` for more info.
-I plan on forking this engine when needed.
  - **Configure reverse proxy and process manager**
 If you plan on hosting 2tls on your local machine, you might not use reverse proxy at all or use ngrok. 
 If you want to deploy 2tls to prod, you should **absolutely** use reverse proxy: it will provide HTTPS support and also it's just not recommended to use anything without a reverse proxy.
