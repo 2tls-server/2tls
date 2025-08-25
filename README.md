@@ -1,6 +1,7 @@
 # 2tls
-**The server is currently in active development. Available on sonolus.2tls.fun**
-Discord server: *currenty unavailable, come back soon*
+**The server is currently in active development. Available on [2tls.fun](2tls.fun)**
+
+*[Discord server](https://discord.gg/fa5nJEsXH7)*
 ## TODO
 
  - [ ] Replay uploading and leaderboards

@@ -92,7 +92,7 @@ async def levels(always_set_alias: str | None = None, always_hide_id: Literal['0
                 type='',
                 title='#UPLOAD',
                 icon='arrowUp',
-                description=f'{language['create_level_description']}\n\n',
+                description='\n\n', # f'{language['create_level_description']}\n\n',
                 requireConfirmation=True,
                 options=[
                     ServerTextOption(

@@ -38,7 +38,7 @@ class Language(TypedDict):
 
 strings = { # I aint gon lie, chatgpt fixed my text. At least it's readable now
     'en': {
-        'description': 'Assets are from Chart Cyanvas server\nPlease check the posts for guidelines and more info',
+        'description': 'Assets are from Chart Cyanvas server\nPlease check the posts for guidelines and more info\nDiscord: https://discord.gg/fa5nJEsXH7',
         'always_hide_id_name': 'Always Hide My ID',
         'always_hide_id_description': \
 f"""NOTE: This setting does not affect actions on the website.
@@ -91,7 +91,7 @@ You can change this and the "Alias" option here for only this level, or enable i
         'my_levels': 'My levels'
     },
     'ru': {
-        'description': 'Ассеты взяты с сервера Chart Cyanvas\nПожалуйста, загляните в посты для правил и дополнительной информации',
+        'description': 'Ассеты взяты с сервера Chart Cyanvas\nПожалуйста, загляните в посты для правил и дополнительной информации\nDiscord: https://discord.gg/fa5nJEsXH7',
         'always_hide_id_name': 'Всегда скрывать ID',
         'always_hide_id_description': \
 f"""ПРИМЕЧАНИЕ: эта настройка не влияет на действия, совершённые на сайте.
