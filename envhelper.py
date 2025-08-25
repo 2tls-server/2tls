@@ -13,5 +13,6 @@ class BaseEnv(BaseModel):
     S3_SECRET_KEY: str
     S3_PUBLIC_ENDPOINT: str # wont actually be sent to a client, but rather used by a server itself. Must end with /
 
+    ALLOW_ORDER_CACHE_REBUILD: bool = False # only set if there are more then 80 available public charts
     PROJECT_NAME: str = '2tls'
     IS_DEV: bool = True

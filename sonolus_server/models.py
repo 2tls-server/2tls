@@ -395,7 +395,7 @@ class BaseLevel(SQLModel):
     artist: str | None = SQLField(None, max_length=128)
     difficulty: int = SQLField(..., ge=1, le=99)
     description: str = SQLField('', max_length=512)
-    visibility: Visibility
+    visibility: Visibility = Visibility.UNLISTED
 
 class PublicLevel(BaseLevel):
     level_file_upload: str
@@ -421,7 +421,7 @@ class Level(BaseLevel, table=True):
     timestamp: int
 
     def set_meta(self):         
-        self.meta = f'{romanize(self.title)}{romanize(self.producer)}{romanize(self.artist)}{romanize(self.description)}'
+        self.meta = f'{romanize(self.title)}{romanize(self.producer)}{romanize(self.artist) if self.artist else ''}{romanize(self.description) if self.description else ''}'
 
 class LevelLike(SQLModel, table=True):
     level_id: str = SQLField(primary_key=True)

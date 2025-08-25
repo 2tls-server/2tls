@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI):
     await database.redis_client.close()
     
 app = FastAPI(
-    debug=True,
+    debug=env.IS_DEV,
     lifespan=lifespan
 )
 

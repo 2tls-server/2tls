@@ -128,7 +128,6 @@ async def upload_level(
 ):
     always_hide_id = bool(always_hide_id)
 
-    print('got files')
     if level_json := await database.redis_client.get(f'{env.PROJECT_NAME}:level_upload:{upload_key}'):
         await database.redis_client.delete(f'{env.PROJECT_NAME}:level_upload:{upload_key}')
     else:
@@ -139,8 +138,15 @@ async def upload_level(
     level = level_and_user.level
     user = level_and_user.user
 
-    async with database.get_session() as session:
-        user.anonymous_user = (await session.execute(select(AnonymousUser).where(AnonymousUser.user_id == user.id))).scalar_one()
+    if level.hide_id is None:
+        level.hide_id = always_hide_id
+
+    if level.hide_id:
+        async with database.get_session() as session:
+            user.anonymous_user = (await session.execute(select(AnonymousUser).where(AnonymousUser.user_id == user.id))).scalar_one()
+            handle = user.anonymous_user.handle
+    else:
+        handle = user.handle
 
     (cover, cover_hash), (bgm, bgm_hash, preview, preview_hash), (data, data_hash) = await gather(
         process_cover(await get_file(files, level.cover_file_upload)),
@@ -163,9 +169,6 @@ async def upload_level(
         ]]
         await gather(*upload_tasks)
 
-    if level.hide_id is None:
-        level.hide_id = always_hide_id
-
     if level.set_alias is None:
         level.set_alias = always_set_alias
 
@@ -180,7 +183,7 @@ async def upload_level(
         user_id=user.id,
         is_anonymous=level.hide_id,
         user_name=level.set_alias if level.set_alias else user.name,
-        user_handle=user.anonymous_user.handle if level.hide_id else user.handle,
+        user_handle=handle,
         data_hash=data_hash,
         bgm_hash=bgm_hash,
         cover_hash=cover_hash,

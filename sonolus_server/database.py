@@ -5,10 +5,10 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from .models import LevelItem, Level, UseItem, Srl, Visibility, LevelLike, Tag
 from env import env
-from time import time
 from fastapi import HTTPException
 from sqlmodel import select, col, update
 from .static import engine
+from asyncio import sleep
 
 redis_client: Redis
 session_maker: sessionmaker
@@ -21,6 +21,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 class LevelCache:
     def __init__(self, override_redis_client: Redis | None=None):
         self.redis = override_redis_client if override_redis_client else redis_client
+        self.order_cache_rebuild_lock = False
 
     def level_to_level_item(self, level: Level, tags: list[Tag] | None = None) -> LevelItem:
         return LevelItem(
@@ -61,16 +62,16 @@ class LevelCache:
         await ((self.redis.decr if decr else self.redis.incr)(f'{env.PROJECT_NAME}:level_counter'))
 
     async def add(self, level: Level):
-        if level.visibility == Visibility.UNLISTED:
-            return
+        if self.order_cache_rebuild_lock:
+            await sleep(1)
+            return await self.add(level)
 
         level_json = level.model_dump_json()
         level_item_json = self.level_to_level_item(level).model_dump_json()
-        now = int(time())
 
         await self.redis.setex(f'{env.PROJECT_NAME}:id_level_cache:{level.id}', 86400, level_json)
-        await self.redis.zadd(f'{env.PROJECT_NAME}:order_level_cache', {level_item_json: now + 86400})
-        await self.redis.zremrangebyscore(f'{env.PROJECT_NAME}:order_level_cache', 0, now)
+        await self.redis.lpush(f'{env.PROJECT_NAME}:order_level_cache', level_item_json)
+        await self.redis.ltrim(f'{env.PROJECT_NAME}:order_level_cache', 0, 79)
         await self.redis.sadd(f'{env.PROJECT_NAME}:level_likes:{level.id}', 'id_placeholder') # go to __get_likes_from_db_and_pass_to_redis
         await self.redis.expire(f'{env.PROJECT_NAME}:level_likes:{level.id}', 86400)
 
@@ -99,10 +100,41 @@ class LevelCache:
 
             return level_in_db
     
-    async def get_page(self, page_size: int=20, page_num: int=0) -> list[LevelItem]:
-        length = await self.redis.zcard(f'{env.PROJECT_NAME}:order_level_cache')
+    async def order_cache_rebuild(self):
+        await self.redis.delete(f'{env.PROJECT_NAME}:order_level_cache')
 
-        if length < page_size * (page_num + 1):
+        async with get_session() as session:
+            await self.redis.lpush(
+                f'{env.PROJECT_NAME}:order_level_cache',
+                *reversed(
+                    list(
+                        map(
+                            lambda x: self.level_to_level_item(x).model_dump_json(), 
+                            (
+                                await session.execute(
+                                    select(Level)
+                                    .where(Level.visibility == Visibility.PUBLIC)
+                                    .order_by(
+                                        col(Level.autoincrement_id)
+                                        .desc()
+                                    ).limit(80)
+                                )
+                            ).scalars().all()
+                        )
+                    )
+                )
+            )
+
+
+    async def get_page(self, page_size: int=20, page_num: int=0) -> list[LevelItem]:
+        length = await self.redis.llen(f'{env.PROJECT_NAME}:order_level_cache')
+
+        if env.ALLOW_ORDER_CACHE_REBUILD and length < 79 and not self.order_cache_rebuild_lock:
+            self.order_cache_rebuild_lock = True
+            await self.order_cache_rebuild()
+            self.order_cache_rebuild_lock = False
+
+        if length - 1 < page_size * (page_num + 1):
             async with get_session() as session:
                 return map(
                     self.level_to_level_item,
@@ -115,12 +147,11 @@ class LevelCache:
                     )).scalars().all()
                 )
             
-        return sorted(
+        return list(
             map(
                 lambda x: LevelItem.model_validate_json(x),
-                await self.redis.zrange(f'{env.PROJECT_NAME}:order_level_cache', page_size * page_num, page_size * (page_num + 1) - 1)
-            ),
-            key=lambda x: x.autoincrement_id
+                await self.redis.lrange(f'{env.PROJECT_NAME}:order_level_cache', page_size * page_num, page_size * (page_num + 1) - 1)
+            )
         )
     
     async def __get_likes_from_db_and_pass_to_redis(self, id: str) -> list[str] | None:
@@ -168,7 +199,7 @@ class LevelCache:
                     .values(likes=Level.id + 1)
                     .returning(Level.likes)
                 )
-                await session.add(LevelLike(
+                session.add(LevelLike(
                     level_id=level_id,
                     user_id=user_id
                 ))
@@ -189,11 +220,14 @@ class LevelCache:
 
         return not my_like, like_count
     
-    async def __delete_level(self, level_id: str):
+    async def __delete_level(self, level_id: str, dont_delete_public_level: bool = False):
         # would love to take level: Level as an argument, but uhh
 
         async with get_session() as session:
             level = (await session.execute(select(Level).where(Level.id == level_id))).scalar_one()
+
+            if dont_delete_public_level and level.visibility == Visibility.PUBLIC:
+                raise HTTPException(400)
 
             await session.delete(level)
             await session.commit()
@@ -206,21 +240,23 @@ class LevelCache:
         await self.redis.delete(f'{env.PROJECT_NAME}:id_level_cache:{level_id}', f'{env.PROJECT_NAME}:level_likes:{level_id}')
 
         if level.visibility == Visibility.PUBLIC:
-            await self.redis.zrem(f'{env.PROJECT_NAME}:order_level_cache', self.level_to_level_item(level).model_dump_json())
+            await self.redis.lrem(f'{env.PROJECT_NAME}:order_level_cache', 0, self.level_to_level_item(level).model_dump_json())
 
     async def list_level(self, level_id: str):
-        level = await self.__delete_level(level_id)
-        level_item_json = self.level_to_level_item(level).model_validate_json()
+        level = await self.__delete_level(level_id, dont_delete_public_level=True)
+        level_item_json = self.level_to_level_item(level).model_dump_json()
 
-        new_level = Level.model_validate(level.model_dump(exclude=Level.autoincrement_id))
+        new_level = Level.model_validate(level.model_dump(exclude={'autoincrement_id'}))
         new_level.visibility = Visibility.PUBLIC
         new_level_json = new_level.model_dump_json()
 
-        now = int(time())
+        async with get_session() as session:
+            session.add(new_level)
+            await session.commit()
 
         await self.redis.setex(f'{env.PROJECT_NAME}:id_level_cache:{level.id}', 86400, new_level_json)
-        await self.redis.zadd(f'{env.PROJECT_NAME}:order_level_cache', {level_item_json: now + 86400})
-        await self.redis.zremrangebyscore(f'{env.PROJECT_NAME}:order_level_cache', 0, now)
+        await self.redis.lpush(f'{env.PROJECT_NAME}:order_level_cache', level_item_json)
+        await self.redis.ltrim(f'{env.PROJECT_NAME}:order_level_cache', 0, 79)
         await self.redis.expire(f'{env.PROJECT_NAME}:level_likes:{level.id}', 86400)
 
 level_cache: LevelCache

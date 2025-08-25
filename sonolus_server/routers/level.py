@@ -93,7 +93,8 @@ async def level_action(level_id: str, action: ServerSubmitItemActionRequest, use
             return ServerSubmitItemActionResponse(
                 key='',
                 hashes=[],
-                shouldUpdateItem=True
+                shouldUpdateItem=True,
+                shouldRemoveItem=False
             )
         case 'list':
             if user.id != level.user_id:
@@ -103,7 +104,8 @@ async def level_action(level_id: str, action: ServerSubmitItemActionRequest, use
             return ServerSubmitItemActionResponse(
                 key='',
                 hashes=[],
-                shouldUpdateItem=True
+                shouldUpdateItem=True,
+                shouldRemoveItem=False
             )
         case 'delete':
             if user.id != level.user_id:
@@ -122,8 +124,9 @@ async def level_action(level_id: str, action: ServerSubmitItemActionRequest, use
             return ServerSubmitItemActionResponse(
                 key='',
                 hashes=[],
+                shouldUpdateItem=False,
                 shouldRemoveItem=True,
-                shouldNavigateToItem='info'
+                shouldNavigateToItem=f'{env.PROJECT_NAME}-my-levels'
             )
 
 @router.get(f'/levels/{env.PROJECT_NAME}-level-{{level_id}}', response_model=ServerItemDetails[LevelItem])
@@ -140,7 +143,7 @@ async def level(level_id: str, user: User | None=Depends(GetUser()), localizatio
                 type='delete',
                 title='#DELETE',
                 icon='delete',
-                requireConfirmation=False,
+                requireConfirmation=True,
                 options=[]
             ))
             if level.visibility == Visibility.UNLISTED:
@@ -148,7 +151,7 @@ async def level(level_id: str, user: User | None=Depends(GetUser()), localizatio
                     type='list',
                     title='#PUBLISH',
                     icon='show',
-                    requireConfirmation=False,
+                    requireConfirmation=True,
                     options=[]
                 ))
         else:
