@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, responses
 from contextlib import asynccontextmanager
 from sqlmodel import SQLModel, select, func
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -56,4 +56,5 @@ app.include_router(website_api.router)
 
 @app.get("/")
 async def root():
-    return 'The website is WIP. Come back later. You can join the discord server tho!! https://discord.gg/fa5nJEsXH7'
+    return responses.RedirectResponse(f'https://open.sonolus.com/{env.FINAL_HOST_LINKS[0]}')
+    # return 'The website is WIP. Come back later. You can join the discord server tho!! https://discord.gg/fa5nJEsXH7'
