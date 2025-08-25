@@ -10,3 +10,4 @@ aiobotocore
 Pillow
 pydub
 uvicorn
+cryptography
