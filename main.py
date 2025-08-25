@@ -56,5 +56,5 @@ app.include_router(website_api.router)
 
 @app.get("/")
 async def root():
-    return responses.RedirectResponse(f'https://open.sonolus.com/{env.FINAL_HOST_LINKS[0]}')
+    return responses.RedirectResponse(f'https://open.sonolus.com/2tls.fun')
     # return 'The website is WIP. Come back later. You can join the discord server tho!! https://discord.gg/fa5nJEsXH7'
