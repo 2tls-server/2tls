@@ -11,8 +11,10 @@ from env import env
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from fakeredis import FakeAsyncRedis
-from redis.asyncio import Redis, ConnectionPool
+if env.IS_DEV:
+    from fakeredis import FakeAsyncRedis as Redis
+else:
+    from redis.asyncio import Redis
 
 import sonolus_server.database as database
 
@@ -22,22 +24,20 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
-    if env.IS_DEV:
-        database.redis_client = FakeAsyncRedis.from_url(env.REDIS_LINK, decode_responses=True)
-    else:
-        database.redis_pool = ConnectionPool.from_url(env.REDIS_LINK, decode_responses=True, max_connections=10, blocking=True, blocking_timeout=3.0)
-        database.redis_client = Redis(connection_pool=database.redis_pool)
+    database.redis_client = Redis.from_url(env.REDIS_LINK, decode_responses=True)
     database.session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     database.level_cache = database.LevelCache()
 
-    async with database.get_session() as session, database.redis_client.client() as redis:
-        await redis.set(
+    async with database.get_session() as session:
+        await database.redis_client.set(
             f'{env.PROJECT_NAME}:level_counter', 
             (await session.execute(select(func.count()).select_from(sonolus_server.models.Level).where(sonolus_server.models.Level.visibility == sonolus_server.models.Visibility.PUBLIC))).scalar_one()
         )
 
     yield
+
+    await database.redis_client.close()
     
 app = FastAPI(
     debug=env.IS_DEV,

@@ -97,9 +97,8 @@ async def auth(auth_request: ServerAuthenticateRequest, request: Request, signat
             new_user = User(**req_user)
             new_user.anonymous_user = (await session.execute(select(AnonymousUser).where(AnonymousUser.user_id == new_user.id))).scalar_one()
 
-    async with database.redis_client.client() as redis:
-        await redis.setex(f'{env.PROJECT_NAME}:session:{session_id}', MINUTES_30, new_user.id)
-        await redis.setex(f'{env.PROJECT_NAME}:user:{new_user.id}', MINUTES_30, new_user.model_dump_json())
+    await database.redis_client.setex(f'{env.PROJECT_NAME}:session:{session_id}', MINUTES_30, new_user.id)
+    await database.redis_client.setex(f'{env.PROJECT_NAME}:user:{new_user.id}', MINUTES_30, new_user.model_dump_json())
 
     return ServerAuthenticateResponse(
         session=session_id,
