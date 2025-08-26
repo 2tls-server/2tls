@@ -87,7 +87,17 @@ You can change this and the "Alias" option here for only this level, or enable i
         'search_by_user_handle': 'User ID',
         'sort_by_most_liked': 'Most liked',
         'guidelines_title': 'Guidelines',
-        'guidelines': 'There are no exact guidelines for now, but there will be soon. As for now, you can publish pretty much everything and I can decide if it gets deleted (and maybe you getting banned if you\'ve done something REAL bad. For example: NSFW)',
+        'guidelines': \
+'''
+1. No NSFW content – explicit sexual, violent, or otherwise inappropriate material is prohibited.
+2. No stolen content – only upload charts, images, and music you created or have permission to use.
+3. Accurate metadata – provide correct title, artists, producer and bpm information to respect original creators.
+4. Appropriate images – covers must be safe for all audiences and match the level’s theme.
+5. Audio quality – music must be clear and free from heavy distortion or unwanted noise.
+6. Respectful naming – no offensive or misleading titles, aliases, or descriptions.
+7?. Test before uploading – make sure your chart is playable and free of critical errors.
+8. Follow local laws – do not upload copyrighted or illegal content without proper authorization.
+''',
         'my_levels': 'My levels'
     },
     'ru': {
@@ -140,7 +150,17 @@ f"""Заменит твой Sonolus ID на {env.PROJECT_NAME} ID. Отобра�
         'sort_by_most_liked': 'Самые залайканные',
         'search_by_user_handle': 'По ID пользователя',
         'guidelines_title': 'Правила',
-        'guidelines': 'Сейчас нет конкретных правил, однако скоро появятся. Сейчас вы можете загружать почти все что угодно, а я буду решать, удалять ли (и может даже банить создателя если тот сделал что-то реально ужасное. Например NSFW)',
+        'guidelines': \
+'''
+1. Без NSFW-контента – запрещены материалы с откровенным сексуальным, насильственным или неприемлемым содержанием.
+2. Не воруй чужое – загружай только те чарты, изображения и музыку, которые сделал сам или имеешь разрешение использовать.
+3. Правильные метаданные – указывай корректное название, артистов, продюсера и бпм, чтобы уважать оригинальных авторов.
+4. Подходящие изображения – обложки должны быть безопасными и соответствовать теме уровня.
+5. Качественный звук – музыка должна быть чистой, без сильных искажений и посторонних шумов.
+6. Уважительные названия – никакого оскорбительного или вводящего в заблуждение текста.
+7?. Тестируй перед загрузкой – убедись, что чарт можно пройти и в нём нет критических ошибок.
+8. Соблюдай законы – не загружай контент, нарушающий авторские права или другие законы.
+''',
         'my_levels': 'Мои уровни'
     }
 }
