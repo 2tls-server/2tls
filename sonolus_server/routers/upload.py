@@ -44,7 +44,9 @@ async def create_level(
     level = unparsed_level.parse()
 
     upload_key = secrets.token_urlsafe(32)
-    await database.redis_client.setex(f'{env.PROJECT_NAME}:level_upload:{upload_key}', 60 * 60, LevelAndUser(level=level, user=user).model_dump_json())
+
+    async with database.redis_client.client() as redis:
+        await redis.setex(f'{env.PROJECT_NAME}:level_upload:{upload_key}', 60 * 60, LevelAndUser(level=level, user=user).model_dump_json())
 
     return ServerCreateItemResponse(
         key=upload_key, # I didn't understand it, but now it makes sense
@@ -128,10 +130,11 @@ async def upload_level(
 ):
     always_hide_id = bool(always_hide_id)
 
-    if level_json := await database.redis_client.get(f'{env.PROJECT_NAME}:level_upload:{upload_key}'):
-        await database.redis_client.delete(f'{env.PROJECT_NAME}:level_upload:{upload_key}')
-    else:
-        raise HTTPException(403)
+    async with database.redis_client.client() as redis:
+        if level_json := await redis.get(f'{env.PROJECT_NAME}:level_upload:{upload_key}'):
+            await redis.delete(f'{env.PROJECT_NAME}:level_upload:{upload_key}')
+        else:
+            raise HTTPException(403)
 
     level_and_user = LevelAndUser.model_validate_json(level_json)
 

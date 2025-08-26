@@ -12,15 +12,15 @@ class GetUser:
         self.return_user = return_user
 
     async def __validate_session(self, session: str | None) -> str | None:
-        if not session or not (user_id := await database.redis_client.get(f'{env.PROJECT_NAME}:session:{session}')):
-            return None
+        async with database.redis_client.client() as redis:
+            if not session or not (user_id := await redis.get(f'{env.PROJECT_NAME}:session:{session}')):
+                return None
         
         return user_id
 
     async def __get_user(self, user_id: str) -> User | None:
-        # async with database.get_session() as db_session:
-        #     return (await db_session.execute(select(User).where(User.id == user_id))).scalar_one_or_none()
-        json = await database.redis_client.get(f'{env.PROJECT_NAME}:user:{user_id}')
+        async with database.redis_client.client() as redis:
+            json = await redis.get(f'{env.PROJECT_NAME}:user:{user_id}')
 
         if not json:
             return None
