@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
 
-    database.redis_client = Redis.from_url(env.REDIS_LINK, decode_responses=True)
+    database.redis_client = Redis.from_url(env.REDIS_LINK, decode_responses=True, max_connections=10)
     database.session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     database.level_cache = database.LevelCache()
