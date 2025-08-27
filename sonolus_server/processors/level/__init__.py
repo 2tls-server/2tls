@@ -6,22 +6,27 @@ from pydantic import BaseModel
 from typing import Literal
 from gzip import compress
 import quickjs
+from json import loads, dumps
 
 class USCFile(BaseModel):
     usc: USC
     version: Literal[2]
 
-def uscToLevelData(usc: USC):
+def uscToLevelData(usc):
     ctx = quickjs.Context()
     ctx.eval(JS_CODE)
+    # ctx.add_callable('print', print)
 
-    return ctx.get('uscToLevelData')(usc.model_dump_json()).json()
+    # return ctx.get('uscToLevelData')(usc.model_dump_json()).json()
+    return ctx.get('uscToLevelData')(dumps(usc['usc'])).json()
 
 def process_level(data: bytes) -> bytes:
     data = data.decode()
 
-    model = USCFile.model_validate_json(data, strict=True)
-    return compress(uscToLevelData(usc=model.usc).encode()) # TODO: Support for USCv1 and chs/mmws/sus
+    # model = USCFile.model_validate_json(data, strict=True)
+    # return compress(uscToLevelData(usc=model.usc).encode()) # TODO: Support for USCv1 and chs/mmws/sus
+
+    return compress(uscToLevelData(loads(data)).encode())
 
 JS_CODE = '''
 // MIT License
@@ -238,6 +243,7 @@ function uscToLevelData (uscjson, offset = 0) {
     let tsGroupIndex = -1;
     const tsGroupEntities = [];
     const tsChangeEntities = [];
+    // print(JSON.stringify(usc.objects), JSON.stringify(usc))
     for (const tsGroup of usc.objects) {
         if (tsGroup.type !== "timeScaleGroup")
             continue;

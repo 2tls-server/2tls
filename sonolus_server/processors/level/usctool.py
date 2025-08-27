@@ -1,7 +1,7 @@
 # Based on https://github.com/sevenc-nanashi/usctool, licensed under MIT.
 
 from pydantic import BaseModel, field_validator, Field
-from typing import Literal
+from typing import Literal, Annotated
 
 type number = int | float
 
@@ -92,7 +92,7 @@ USC_FADES = {
     'out': 0,
     'none': 1
 }
-type USCFade = Literal['in', 'out', 'fade']
+type USCFade = Literal['in', 'out', 'none']
 
 class USCGuideMidpointNote(BaseUSCNote):
     ease: Literal['out', 'linear', 'in', 'inout', 'outin'] # fixed ig?
@@ -103,7 +103,7 @@ class USCGuideNote(BaseModel):
     fade: USCFade
     midpoints: list[USCGuideMidpointNote]
 
-type USCObject = USCBpmChange | USCTimeScaleChange | USCSingleNote | USCSlideNote | USCGuideNote | USCDamageNote
+type USCObject = Annotated[USCBpmChange | USCTimeScaleChange | USCSingleNote | USCSlideNote | USCGuideNote | USCDamageNote, Field(discriminator='type')]
 
 class USC(BaseModel):
     offset: number
