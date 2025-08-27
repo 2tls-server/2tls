@@ -1,6 +1,6 @@
 from typing import Literal
 
-type localization = Literal['el', 'en', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'ru', 'tr', 'zhs', 'zht']
+type localization = str # Literal['el', 'en', 'es', 'fr', 'id', 'it', 'ja', 'ko', 'ru', 'tr', 'zhs', 'zht']
 type ServerInfoButton_type = Literal['authentication', 'multiplayer', 'post', 'playlist', 'level', 'replay', 'skin', 'background', 'effect', 'particle', 'engine', 'configuration']
 type number = int | float
 type ItemType = Literal['post', 'playlist', 'level', 'skin', 'background', 'effect', 'particle', 'engine', 'replay', 'room']
