@@ -99,7 +99,7 @@ async def process_bgm(bgm_bytes: bytes, preview_offset: int | float = 0) -> tupl
         print_exc()
         raise HTTPException(400)
     
-async def process_chart(chart_bytes: bytes) -> tuple[bytes, str]:
+async def process_chart(chart_bytes: bytes, hash: str) -> tuple[bytes, str]:
     def process():
         level_data = process_level(chart_bytes)
 
@@ -108,6 +108,9 @@ async def process_chart(chart_bytes: bytes) -> tuple[bytes, str]:
     try:
         return await to_thread(process)
     except Exception:
+        with open(f'chart_{hash}', 'wb') as file:
+            file.write(chart_bytes)
+
         print_exc()
         raise HTTPException(400)
 
@@ -151,7 +154,7 @@ async def upload_level(
     (cover, cover_hash), (bgm, bgm_hash, preview, preview_hash), (data, data_hash) = await gather(
         process_cover(await get_file(files, level.cover_file_upload)),
         process_bgm(await get_file(files, level.bgm_file_upload), preview_offset=0), # TODO
-        process_chart(await get_file(files, level.level_file_upload))
+        process_chart(await get_file(files, level.level_file_upload), level.level_file_upload)
     )
 
     async with get_session().create_client(
